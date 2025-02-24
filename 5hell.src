@@ -341,15 +341,15 @@ if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 //
 //////////////////////////////////// SECURITY GOES HERE //////////////////////
 ///// customize this line fully for the most security ////////
-  access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
-  // if you rename access_codes be sure to edit the below line
-  rnac = access_codes.indexes
-  rnac.shuffle
-  rnac = rnac.pop
-  if user_input(colorCyan+"Cyberdeck Authentication Code ["+colorWhite+rnac+colorCyan+"]: "+CT,1,0) != access_codes[rnac] then
-    wait(300)
-    exit("frag off, chumba")
-  end if
+  // access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
+  // // if you rename access_codes be sure to edit the below line
+  // rnac = access_codes.indexes
+  // rnac.shuffle
+  // rnac = rnac.pop
+  // if user_input(colorCyan+"Cyberdeck Authentication Code ["+colorWhite+rnac+colorCyan+"]: "+CT,1,0) != access_codes[rnac] then
+  //   wait(300)
+  //   exit("frag off, chumba")
+  // end if
 /////////////////END SECURITY///////////////////
 //
 //
