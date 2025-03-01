@@ -37,3 +37,16 @@ jobs:
     # Step 4: Print a helpful timestamp for your records (not required, just nice)
     - name: Timestamp
       run: date
+
+  sync-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Merge upstream -> main
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: upstream
+          target_branch: main
+          github_token: ${{ secrets.GITHUB_TOKEN }}
