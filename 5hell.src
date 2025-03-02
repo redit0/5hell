@@ -43,7 +43,7 @@ command = {} // default
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
 //globals.HOME_SERVER = ["string: ip", "number: port", "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)", "string: /path/to/database.csv (default: /root/rkit/database.csv)", "string: /path/to/tables/t5 (default: /root/tables/t5)"]
-globals.HOME_SERVER = ["ip.add.rr.ess", 22, "root", "password", "ssh", "/root/pass","/root/tables/t5"]
+globals.HOME_SERVER = [#envar ip, 22, "root", #envar pass, "ssh", "/root/pass","/root/tables/t5"]
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
   // @home will be replaced with your ip, no password needed in this case
@@ -341,15 +341,15 @@ if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 //
 //////////////////////////////////// SECURITY GOES HERE //////////////////////
 ///// customize this line fully for the most security ////////
-  access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
-  // if you rename access_codes be sure to edit the below line
-  rnac = access_codes.indexes
-  rnac.shuffle
-  rnac = rnac.pop
-  if user_input(colorCyan+"Cyberdeck Authentication Code ["+colorWhite+rnac+colorCyan+"]: "+CT,1,0) != access_codes[rnac] then
-    wait(300)
-    exit("frag off, chumba")
-  end if
+  // access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
+  // // if you rename access_codes be sure to edit the below line
+  // rnac = access_codes.indexes
+  // rnac.shuffle
+  // rnac = rnac.pop
+  // if user_input(colorCyan+"Cyberdeck Authentication Code ["+colorWhite+rnac+colorCyan+"]: "+CT,1,0) != access_codes[rnac] then
+  //   wait(300)
+  //   exit("frag off, chumba")
+  // end if
 /////////////////END SECURITY///////////////////
 //
 //
