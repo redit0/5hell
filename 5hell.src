@@ -52,6 +52,21 @@ globals.HOME_SERVER = [#envar ip, 22, "root", #envar pass, "ssh", "/root/pass","
 ////// END @HOME CONFIGURATION//////////////////////////////////////////////////
 //
 //
+// DEFINE COLOR PALETTE //
+// edit these if the current color conflicts with your theme
+colorRed = "<color=#FF0000FF><b>"
+colorGreen = "<color=#00FF00FF><b>"
+colorOlive = "<color=#048004FF><b>"
+colorWhite = "<color=#FFFFFFFF><b>"
+colorCyan = "<color=#00FFFFFF><b>"
+colorGold = "<color=#CCCC00FF><b>"
+colorGrey = "<color=#71858DFF><b>"
+colorBlack = "<color=#000000FF><b>"
+colorOrange = "<color=#FF8400FF><b>"
+colorViolet = "<color=#8821FDFF><b>"
+colorMagenta = "<color=#FF00C8FF><b>"
+colorLightBlue = "<color=#2382FFFF><b>"
+CT = "</color></b>"
 /////////// IMPRT LINE /////////
 //////////// change the below lines to the path where you placed 5hell.5pk //////
 // Do not remove the comments in the next two lines, they are necessary for Greybel support
@@ -120,17 +135,13 @@ command.shell = function(input=null,mute=null)
     if globals.GLASSPOOL then bang = colorLightBlue+bang.trim+"<color=#FFFFFF> " 
     ////////// end prompt preperation
 
-    // get user input unless command.shell was called internally (do, cc, glasspool...) // do not edit
-    // if EXPERIMENTAL then 
-    //   // experimental version; add prompt to command history
-    //   if input then prompt = input.split(" ") else prompt = user_input(bang,0,0,1).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
-    // else 
-    //   if input then prompt = input.split(" ") else prompt = user_input(bang,0,0).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
-    // end if
     prompt = [0,0,0,0,0]
     if input then 
-      if typeof(input) == "list" then prompt = input// else prompt = str(input)
-      if typeof(input) == "string" then prompt = input.split(" ")
+      // all input sent to command.shell MUST have: | return
+      // -- appended to the end!!
+      if DEBUG then print "<b>input received: "+@input
+      if typeof(input) == "list" then prompt = input
+      if typeof(input) == "string" then prompt = input.replace(" \|\| "," |  | ").split(" ")
       if prompt == [0,0,0,0,0] then return
     else 
       if EXPERIMENTAL then 
@@ -142,7 +153,7 @@ command.shell = function(input=null,mute=null)
     end if
     // flow control, edit with care
     // add or remove comment characters to/from the string below
-    if input and (typeof(input) == "string" or typeof(input) == "list") and indexOf("|#/", input[0]) != null then
+    if input and (typeof(input) == "string" or typeof(input) == "list") and indexOf("|#", input[0]) != null then // had to remove '/' as it was conflicting with things
       if DEBUG then print "debug: shell: skipping comment: "+prompt.join(" ")
       return
     else 
@@ -285,8 +296,8 @@ command.shell = function(input=null,mute=null)
       if cmdName == "shell" then
         // if you'd like the 'shell' command to return additional info, do that here
         if @prompt[1] == "--daemons" then
-          print list_daemons
-          if @prompt[2] == "stop" then print DaemonManager.Stop(prompt[3])
+          print dmanager.List
+          if @prompt[2] == "stop" then print dmanager.Stop(prompt[3])
           continue
         end if
         if @prompt[1] == "--debug" then
@@ -371,25 +382,7 @@ command.shell = function(input=null,mute=null)
 end function
 //////END MAIN//////
 //
-// 5hell uses the following color palette, changing these values will OVERWRITE the defaults:
-// GLOBAL       DEFINITION
-colorRed = "<color=#FF0000FF>"
-colorGreen = "<color=#00FF00FF>"
-colorOlive = "<color=#048004FF>"
-colorWhite = "<color=#FFFFFFFF>"
-colorCyan = "<color=#00FFFFFF>"
-colorGold = "<color=#CCCC00FF>"
-colorBlack = "<color=#000000FF>"
-colorOrange = "<color=#FF8400FF>"
-colorViolet = "<color=#8821FDFF>"
-colorMagenta = "<color=#FF00C8FF>"
-colorLightBlue = "<color=#2382FFFF>"
-CT = "</color></b>"
-//
-// (reference the above for your own commands)
-// (of course you can also add your own!)
-// more globals in template.5pk.src
-//
+// color palette moved to top of file
 if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 ////////////////// IMPORTS SECTION ////////////////////////////
 /////// PASTE YOUR IMPORTED COMMANDS HERE!!  ////////
@@ -414,18 +407,19 @@ if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 //////////////////END IMPRTS SECTION ////////////////////////////
 //
 //
-//////////////////////////////////// SECURITY GOES HERE //////////////////////
-///// customize this line fully for the most security ////////
-  // access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
-  // // if you rename access_codes be sure to edit the below line
-  // rnac = access_codes.indexes
-  // rnac.shuffle
-  // rnac = rnac.pop
-  // if user_input(colorCyan+"Cyberdeck Authentication Code ["+colorWhite+rnac+colorCyan+"]: "+CT,1,0) != access_codes[rnac] then
-  //   wait(300)
-  //   exit("frag off, chumba")
-  // end if
-/////////////////END SECURITY///////////////////
+//////////////////////////////// OPTIONAL SECURITY SECTION //////////////////////
+// ////////////////////////////// YOUR SECURITY GOES HERE //////////////////////
+// ///// customize this line fully (with something more advanced) for the most security ////////
+//   access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
+//   // if you rename access_codes be sure to edit the below line
+//   rnac = access_codes.indexes
+//   rnac.shuffle
+//   rnac = rnac.pop
+//   if user_input(colorCyan+"Cyberdeck Authentication Code ["+colorWhite+rnac+colorCyan+"]: "+CT,1,0) != access_codes[rnac] then
+//     wait(300)
+//     exit("frag off, chumba")
+//   end if
+// /////////////////END SECURITY///////////////////
 // 
 //
 if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
@@ -477,10 +471,10 @@ if params and params[0] == "do" then
   if params.len > 2 then 
     if params[2] == "-f" then 
       cmd = cmd + " "" " + "do 1 -f " + params[3:].join(" ")
-      print "FROM FILE"
+      if DEBUG then print "FROM FILE"
     else 
       cmd = cmd + " "" " + params[2:].join(" ")
-      print "FROM PARAMS"
+      if DEBUG then print "FROM PARAMS"
     end if
   end if
   print command.quit(command.shell(cmd+" "" | return"))

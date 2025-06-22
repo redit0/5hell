@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "2.9.6"
+sphinx_version = "2.9.7"
 malp_version = "1.5.2"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.1...(147.886)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.4...(149.007)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -112,8 +112,6 @@ globals.super_import = function(import_this=0) // String: name; import requested
 		if DEBUG then print("Searching for: "+lib_type)
 		import_lib( lib_type, start_here ) 
 	end for
-	//
-	if DEBUG then print " - - - - - - - "
 	//
 	for lib in lib_types
 		if not globals.hasIndex(lib) then 
@@ -418,7 +416,7 @@ globals.decompiler = function(o)
         if DEBUG then print("debug: i: "+i+" methods: "+methods.len)
         print(colorWhite+"<u>======================</u>"+CT)
         pr = user_input("Select a function to execute (q=quit):> ").to_int
-        if pr.lower == "q" or pr == "" or pr == " " then return "aborting..." 
+        if pr == "q" or pr == "" or pr == " " then return "aborting..." 
         rcv = null
         if pr >= 0 and pr <= i then rcv = globals.p_exe( o , methods[pr]) else return 0
         if DEBUG then print "rcv: "+rcv
@@ -611,7 +609,7 @@ globals.default = @_switch.default
 ///////////// END SWITCH
 if DEBUG then print("<size=75%>loaded _switch engine...</size>")
 
-globals.get_binaries = function(source_shell,dest_folder)
+globals.get_binaries = function(source_shell,dest_folder,onlylogs=0)
   // verify dest_folder exists
   if not dest_folder or typeof(globals.get_file(dest_folder)) != "file" then return "error: destination folder does not exist!"
   // get source_shell home folder
@@ -624,7 +622,13 @@ globals.get_binaries = function(source_shell,dest_folder)
   if DEBUG then print "debug: enum: "+char(10)+globals.enumerated
   print colorCyan+"Fetching readable binaries..."
   for f in globals.enumerated
-    if f.is_binary and not f.is_folder and f.has_permission("r") and f.parent.parent.path == "/home" then bin_buf.push(f)
+    if f.is_binary and not f.is_folder and f.has_permission("r") and f.parent.parent.path == "/home" then 
+      if onlylogs then 
+        if f.path[-4:] == ".log" then bin_buf.push(f)
+      else  
+        bin_buf.push(f)
+      end if
+    end if
   end for
   if DEBUG then print "debug: in get_binaries: bin_buf is"+char(10)+bin_buf
   // find system.log 
@@ -822,6 +826,7 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
         failed = false
         print("scp: pushing "+payload.path+" to "+copy_to+" @ "+shl.host_computer.local_ip+" : "+shl.host_computer.public_ip)
         print(shell.scp(payload.path, copy_to, shl)) ///// copying
+        if copy_to == "/" then copy_to = ""
         if not shl.host_computer.File(copy_to+"/"+payload.name) then failed = true else globals.tagged_for_scp == ""
         if failed == true then print "Upload failed... edit/restore permissions?" else print("Upload complete... <b>edit/restore permissions</b>?")
         if skip_perms then mod = "1" else mod = user_input("[<b>0</b>] yes [1] no ||: ",0,1)
@@ -2695,7 +2700,7 @@ display_portmap = function(bool_dump=0,pclist=0)
   cr = colorRed+"</b>"
   cm = colorMagenta+"</b>"
   co = colorOrange+"</b>"
-  cgr = "<color=#71858DFF>"+"</b>"
+  cgr = colorGrey+"</b>"
   if DEBUG then print "debug: port map: "+PORT_MAP
 
   is_known = function(lib,ver)
@@ -2745,7 +2750,7 @@ end function
 
 make_portmap = function(router, comps, q_bool)
   services = {}
-  if not q_bool then print("Building port map... ")
+  if not q_bool then print("Building port map... <align=center>")
   services["pNum"] = [ "PORT" , "STATUS" , "SERVICE", "VERSION" , "LAN" ]
   if DEBUG then print("after pnum")
   ports = router.used_ports
@@ -2818,8 +2823,22 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
       if not quiet then print("probe: attempting to locate router at: "+char(10)+colorWhite+ip+CT)
       t_router = get_router( ip )
       if not t_router then 
-        if not quiet then print(colorRed+"probe: failed to find router. portscan aborted.")
-        return
+        if not quiet then print(colorRed+"probe: failed to find router\n-- walking subnet until router is found...")
+        t_router = null
+        
+        for lip in range(0,255)
+          ip = ip.split("\.")
+          ip.pop 
+          ip = ip.join(".")
+          ip = ip+"."+lip
+          if DEBUG then print "debug: ip: "+ip
+          t_router = get_router(ip) 
+          if typeof(t_router) == "router" then break 
+        end for
+        if typeof(t_router) != "router" then 
+          print "probe: error, no router found!" 
+          return
+        end if
       end if
     end if
     if not quiet then print(t_router.public_ip + " details:")
@@ -3167,7 +3186,7 @@ sphinx_switch = function(resolve,tt)
   end if
   if resolve == "+" or resolve == "=" then
     if targetIP and targetPort then
-      print(command.linkdb(get_lib,"-y"))
+      if not globals.metaxploit then print "error: metaxploitLib not found" else print(command.linkdb(get_lib,"-y"))
     else
       print(colorOrange+"Please set target IP and Port before continuing.")
     end if
@@ -3231,7 +3250,7 @@ sphinx_switch = function(resolve,tt)
       end if
       if globals.targetIP and globals.targetPort then
         confirm = user_input("Scan remote lib: "+globals.targetIP+" "+globals.targetPort+" and update database? [Y/n] ||: ",0,1)
-        if confirm.lower != "n" then command.db("-r", globals.targetIP, globals.targetPort)
+        if confirm.lower != "n" then print command.db("-r", globals.targetIP, globals.targetPort)
         return true
       else
         print("Please set a target IP and port." )
@@ -3375,6 +3394,9 @@ end function
 
 // Start Main Menu
 main = function()
+  print5 = function(str)
+    return colorGold+"</b>"+str+CT 
+  end function
   user_log_file = get_shell.host_computer.File("/var/system.log")
   logSize = 0
   first_run = true
@@ -3397,7 +3419,8 @@ main = function()
       first_run = false
     end if
     target_type = "local"
-    print(char(10)+colorWhite + "5phinx"+char(8482) +" "+ sphinx_version + ", by Plu70 localhost: "+localmachine.local_ip+CT)
+    print
+    print(colorWhite+"5phinx"+char(8482)+" v "+sphinx_version+", by Plu70 :: localhost: "+localmachine.local_ip+CT)
     print("<b>/////////////////////////////////////////////</b>")
     if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then
       target_type = "local"

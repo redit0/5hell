@@ -1,17 +1,19 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.1.1...(158.928)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.1.4...(155.101)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
     "Usage: <b>kore [-r|--rkit]</b> -- automatic rkit generation"+char(10)+
 	"-- create rkit folder if it doesn't exist"+char(10)+
     "-- copy metaxploit.so, crypto.so, and 5hell to home_dir/rkit"+char(10)+
+	"-- NB: pulls 5hell from launch path of active 5hell script"+char(10)+
 	"-- create database.csv within rkit if it doesn't exist "+char(10)+
 	"-- moves ~/tables to rkit"+char(10)+
 	"-- offers to run pwgen | pwgen hash if ~/tables is not found"+char(10)+char(10)+
     "Usage: <b>kore [-s|--secure]</b> -- automatic secure system:"+char(10)+
     "-- runs:<u> usr -r root / | grp -r root / | rm /etc/passwd"+char(10)+
-    "----    <u> grep -f Bank | rm |  | grep -f Mail | rm | lock"+char(10)+
-	"NOTE: kore -s will remove <b>all</b> copies of Bank.txt and Mail.txt"+char(10)+
+    "----    <u> grep -f Bank | rm |  | grep -f Mail | rm | rclean | lock"+char(10)+
+	"Usage: <b>kore [-sc]</b> -- as above but uses silentclean instead of rclean"+char(10)+
+	"-- NB: kore -s will remove <b>all</b> copies of Bank.txt and Mail.txt"+char(10)+
 	"-- please rename these files if you wish to keep them"+char(10)+char(10)+
 	"Usage: <b>kore [-S]</b> -- paranoid secure; works as above plus:"+char(10)+
 	"-- removes /bin, /usr, and /home"+char(10)+char(10)+
@@ -572,13 +574,13 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ option +CT+ ")" +CT+char(10)+ "Public IP: " + rshells[option - 1].host_computer.public_ip + char(10) + "Local IP: " + rshells[option - 1].host_computer.local_ip + char(10))// + colorWhite + command.ps(rshells[option - 1]))
 	print command.ps(rshells[option - 1])
 	print colorWhite+"<u>"+colorLightBlue+" = = = = = = = = = = = = = </color>"+CT
-	print "[1] glasspool [2] start_terminal [3] scp "+char(10)+
-	      "[4] buffer_it [5] rclean [6] run [K] kill"+char(10)+
+	print "[1] to_buffer [2] start_terminal [3] scp "+char(10)+
+	      "[4] glasspool [5] rclean [6] run [K] kill"+char(10)+
 		  "[7] return_object [8] fetch_binaries [0|q] abort "
 	if not st then st = user_input("||: ",0,1)
 	if st == "0" or st.lower == "q" then return 0
 	if st.lower == "k" then print(ts.host_computer.close_program(user_input("kill pid:> ").to_int ) )
-	if st == "1" then
+	if st == "4" then
 		return command.glasspool(ts)
 	end if
 	if st == "2" then 
@@ -594,7 +596,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 		return globals.secure_copy(ts)
 	end if
-	if st == "4" then
+	if st == "1" then
 		BUFFER.push(ts)
 		return "Shell sent to "+colorOrange+"BUFFER"
 	end if
@@ -1276,7 +1278,7 @@ command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
 		"-- Left takes you to malp"+char(10)+
 		"-- return to the main screen by pressing the opposite arrow key"+char(10)+
 		"Note: as usual, all results are sent to malp"
-	if not globals.metaxploit or not globals.crypto then return "One or more required libraries was not found."
+	//if not globals.metaxploit then return "One or more required libraries was not found."
 	if arg1 and is_valid_ip(arg1) then globals.targetIP = arg1
 	if arg2 and typeof(arg2.to_int) == "number" then 
 		globals.targetPort = arg2.to_int 
@@ -2631,238 +2633,159 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 end function
 // cobble, get_custom_object interface by Plu70
 if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
-
-command.cob = function(arg1,arg2,arg3=0,arg4=0)
-	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
-	colorCyan+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+
-	"-- returns string on success or error"+char(10)+
-	"-- create a map with the custom object by using<b> {}</b> as your val"+char(10)+
-	"--eg:<b> cob set newmap {}"+char(10)+
-	"-- you may set a key within an existing map with the dot reference:"+char(10)+
-	"--eg:<b> cob set newmap.submap {}\n--eg:<b> cob set newmap.foo bar"+char(10)+
-	"---- the map must already exist in order to add an index to the map"+char(10)+
-	"-- create a new list in the custom object by using<b> []</b> as your val"+char(10)+
-	"--eg:<b> cob set newlist []"+char(10)+
-	"---- at this time it is not possible to add to a list in the custom object"+char(10)+
-	colorCyan+"Usage: cob get [key] -- get value of custom object key."+char(10)+
-	"-- returns value at key or null"+char(10)+
-	"-- returns @reference (pointer) if value is a function"+char(10)+
-	"-- use dot reference to retrieve nested elements of lists and maps"+char(10)+
-	"--eg: cob get foo.bar"+char(10)+
-	"--eg: cob get foo.bar.1 -- where 1 is index 1 of a list"+char(10)+
-	colorCyan+"Usage: cob return -- returns the raw custom object"+char(10)+
-	"-- pipe to command.<b>code</b> to decompile the object."+char(10)+
-	"-- ie:<b> cob return | code</b>"+char(10)+
-	colorCyan+"Usage: <b>cob inspect</b> -- returns key/value pair information of custom object"+char(10)+
-	"-- returns a string pairing each key with its [trucated] value"+char(10)+
-	"-- values are truncated to make the object easier to inspect"+char(10)+
-	"-- please use <b>cob return | code</b> if you want the raw output"+char(10)+
-	colorCyan+"Usage: cob indexes -- return custom object indexes as a LIST"+char(10)+
-	"-- pipe to the <b>string</b> command to stringify"+char(10)+
-	colorCyan+"Usage: cob search [val] --  search for index of val."+char(10)+
-	"-- returns string; key or failure message."+char(10)+
-	"Inactive: cob sign -- future ability to sign custom object."+char(10)+
-	"-- currently returns 0 (zero)."+char(10)+
-	colorCyan+"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+
-	"-- returns string on success or failure."+char(10)+
-	colorCyan+"Usage: cob <b>purge</b> -- purge the custom object"+char(10)+
-	colorCyan+"Usage: cob validate -- ensure the custom_object contains indexes:"+char(10)+
-	"--: macros"+char(10)+
-	"--: stack_pool"+char(10)+
-	"--: this avoids crashes when those indexes don't exist"+char(10)+
-	"--: this is run by 5hell automatically in many cases"+char(10)+
-	colorCyan+"Usage: cob install [key] -- install a function residing in the custom object at [key]"+char(10)+
-	"-- this will add the function as a 5hell command (it will show up in help)"+char(10)+
-	"-- functions must still follow the standard template to avoid errors"+char(10)+
-	"-- the funciton will not persist after 5hell is closed"+char(10)+
-	"-- please compile your custom function into 5hell.src for persistent functions"+char(10)+
-	"Advanced: the "+colorGold+"cerebrum"+CT+" command loads the dictionary to the custom object"+char(10)+
-	"-- it is loaded to custom_object.dictionary and can be removed by passing the 'purge' param to cerebrum"+char(10)+
-	"-- this is allows you to use the dictionary between nested shell.launches with only a single run of cerebrum."+char(10)+char(10)+
-	"<b>N.B.</b> -- since version 3.8.3 5hell.src contains aliases for cob set and cob get:"+char(10)+
-	colorGold+"Usage: set [key] [value] -- same as cob set [key] [value]"+char(10)+
-	colorGold+"Usage: get [key] -- same as cob get [key]"+char(10)+char(10)+
-	colorGold+"EZclip: you may use "+colorWhite+"@o </color>[<color=white>key</color>]</b>"+char(10)+
-	"-- to reference a key in the custom object"+char(10)+
-	"-- the <b>@o [key]</b> will be replaced by the key's value, much like using @a, @b, @c for the clipboard"
-	if @arg1 == "help" or @arg1 == "-h" then return usage_info
-	if typeof(@arg1) != "string" then return "cob: invalid input: see <b>cob -h</b>"
-	cobble = get_custom_object
-	cob = {}
-	cob.err = "cob: invalid input: see <b>cob -h"
-	cob.set = function( key=0, val=0, kl="", nul=0 )
-		if not @key or not @val then return null
-		if @val == "{}" then val = {}
-		if @val == "[]" then val = []
-		if typeof(@key) == "function" then
-			if typeof(@val) == "function" then
-				cobble[@key] = @val
+command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
+	if arg1 == "-h" or arg1 == "help" then return "<u>Apt-Get Menu</u>"+char(10)+"Usage: aptm -- apt-get menu: "+char(10)+
+	"-- manage apt functions"+char(10)+
+	"-- add/remove/search repositories."+char(10)+
+	"Usage: aptm [piped_aptclientLib] -- change scope of aptm to supplied lib"+char(10)+
+	"-- eg: bios -a | cob set apt | exit"+char(10)+
+	"-- when used on a remote 'silent launch' of 5hell"+char(10)+
+	"---- pipes aptclientLib to the custom object then exits back to original 5hell"+char(10)+
+	"-- cob get apt | aptm"+char(10)+
+	"---- pipes aptclientLib to aptm and changes scope of aptm to remote"+char(10)+
+	"Advanced: press [7] hot_swap_libs in aptm "+char(10)+
+	"-- reloads meta/crypto/apt to use latest versions after updating"+char(10)+char(10)+
+	"APT command line options (skips the menu):"+char(10)+
+	"Usage: <b>aptm [-i] [filename] [opt: path] </b>-- install filename, if it exists"+char(10)+
+	"-- if not provided, the install path will be the repository's default"+char(10)+
+	"-- this is usually /bin or /lib or /usr/bin"+char(10)+char(10)+
+	"Usage: <b>aptm [-a] [repo_ip] </b>-- add a repository's ip to /etc/apt/sources.txt"+char(10)+char(10)+
+	"Usage: <b>aptm [-d] [repo_ip] </b>-- remove a repository's ip from /etc/apt/sources.txt"+char(10)+char(10)+
+	"Usage: <b>aptm [-u] [/path/filename] </b>-- check for a new version of a file"+char(10)+char(10)+
+	"Usage: <b>aptm [-s] [opt:filename] </b>-- search repositorys for filename"+char(10)+
+	"-- shows all available files if no filename is provided"+char(10)+char(10)+
+	"Usage: <b>aptm [--hotswap] </b>-- reload metaxploit.so, crypto.so, and aptclient.so from disk"+char(10)+
+	"-- searches for and loads the latest version of each lib <b>on disk"+char(10)+
+	"---- does not run aptm upgrade"+char(10)+
+	"-- this is the same include_lib routine executed at launch"
+  	if not globals.apt_get then return "aptm: "+colorRed+"Error: no aptclientLib loaded"+CT
+  	if GLASSPOOL then print(colorOrange+"Ignores Glasspool."+CT)
+	// apt menu by Plu70
+	if arg1 and typeof(arg1) == "aptclientLib" then
+		print "apt-get-menu: importing alternate aptclientLib"+char(10)+"-- pipe the old lib back to restore"+char(10)+"-- eg: liber -i /lib/aptclient.so | aptm"
+		globals.apt_get = arg1 
+	end if
+	apt = {}
+	apt.exit = function()
+		return 0
+	end function
+	apt.check_upgrade = function(override=0)
+		apt.update
+		chk_upg = function(check)
+			need_up = apt_get.check_upgrade(check)
+			if need_up == check+" does not exist in this filesystem" and check.split("/").len == 1 then need_up = apt_get.check_upgrade("/lib/"+check)
+			if need_up == 1 then
+				sp = check.split("/")
+				nm = sp.pop
+				if sp != [] then
+					print("__")
+					apt_get.install(nm, sp.join("/"))
+				else
+					print("__")
+					apt_get.install(nm)
+				end if
+				return "apt-get: "+check+" upgrade complete"
 			else
-				cobble[@key] = val
+				return "apt-get: "+check+" no upgrades found"+char(10)+"-- "+need_up
 			end if
-		else
-			if typeof(@val) == "function" then
-				cobble[key] = @val
-			else
-				cobble[key] = val
-			end if
+		end function
+		if typeof(arg2) == "string" and arg2 != "" then cup = arg2 else cup = user_input("upgrade file_name or /path"+char(10)+":> ")
+    	if not cup or cup == "" or cup == " " then return print("aborting...")
+		if DEBUG then print "debug: aptm: searching for: "+cup
+		//f = get_shell.host_computer.File(cup)
+		f = globals.get_file(cup)
+		if f and f.is_folder then
+			files = f.get_files
+			print("Checking: "+f.path+char(10)+"Found: "+files.len+" files.")
+			for sub in files
+				print(chk_upg(sub.path))
+			end for
+			return print("Batch complete.")
 		end if
-		gcout = "custom_object"
-		if typeof(cobble) != gcout then gcout=gcout+"."+kl
-		if cobble.hasIndex( @key ) then return "cob: set "+gcout+"[<b>"+@key+"</b>] to <b>"+@val+"</b>" else return "cob: set error"
-	end function
-
-	cob.get = function( key=0, val=0, nil=0, nul=0 )
-		if cobble.hasIndex( @key ) then return cobble[@key]
-		if cobble.hasIndex( key ) then return cobble[ key ]
-		return "cob: key not found"
-	end function
-
-	cob.search = function ( val=0, key=0, nil=0, nul=0 )
-		if cobble.indexOf( @val ) != null then
-		if typeof(@val) == "function" then return cobble.indexOf( @val )
-			return cobble.indexOf( val )
-		else
-			if cobble.indexOf( val ) != null then return cobble.indexOf( val )
-			return "cob: value not found"
+    	if f then 
+			return print(chk_upg(f.path)) 
+		else 
+			return "aptm: warning: file not found on system at given path"+char(10)+
+			"-- if the lib is not located in /lib, you must use an absolute path"+char(10)+
+			"-- if you are using a remote aptclientlib.so;"+char(10)+
+			"---- rerun with <b>aptm -U [libname|path]</b> to force the upgrade"
 		end if
+			return print(chk_upg(cup)) // when using a remote aptclientlib, a file may be on the target that is not on the attacking machine
 	end function
-
-	cob.return_indexes = function(key=0,val=0,nil=0,nul=0)
-		return cobble.indexes
+	apt.add_repo = function()
+		apt.update
+	  	if typeof(arg2) == "string" and arg2 != "" then a = arg2 else a = user_input("add repo ip:> ")
+		  return print(apt_get.add_repo(a))
+	end function
+	apt.del_repo = function()
+		apt.update
+		if typeof(arg2) == "string" and arg2 != "" then a = arg2 else a = user_input("del repo ip:> ")
+		return print(apt_get.del_repo(a)) 
+	end function
+	apt.install = function()
+		if typeof(arg2) == "string" and arg2 != "" then return print(apt_get.install(arg2,arg3)) else return print(apt_get.install(user_input("install:> "), user_input("directory:> ")))
+	end function
+	apt.search = function()
+		apt.update
+		if typeof(arg2) == "string" and arg2 != "" then a = arg2 else a = (user_input("search:> "))
+		return print(apt_get.search(a))
+	end function
+	apt.show = function()
+		apt.update
+		print("_____________________________________________"+char(10))
+		rb = apt_get.show(user_input("show repo:> "))
+	  return print(char(10)+rb)
+	end function
+	apt.hot_swap = function()
+		globals.super_import
+		print "Libraries hot_swapped."
+		return 1
+	end function
+	apt.update = function()
+	  return print(apt_get.update)
 	end function
 	
-	cob.inspect = function( key=0, val=0, nil=0, nul=0 )
-		if @key then 
-			tmpc = command.cob("get",@key)
-			if typeof(@tmpc) == "list" or typeof(@tmpc) == "map" then cobble = tmpc else return "cob: cannot inspect non-list/non-map;"+char(10)+"-- instead use:<b> cob get"
-		end if
-		inspect_buf = []
-		value_buf = []
-		st = "KEY "+colorWhite+":"+CT+" [" + colorGold+"</b>"+ "TYPE" + "</color>] "+colorWhite+":"+CT+" "
-		sv = "VALUE"
-		inspect_buf.push(st)
-		value_buf.push(sv)
-		for thing in cobble 
-			parsed_value = @thing.value
-			if typeof(@thing.value) == "string" and thing.value.len > 32 then parsed_value = thing.value[:27]+"..."
-			if typeof(@thing.value) == "list" and thing.value.len > 5 then parsed_value = thing.value[:5]+["..."]
-			if typeof(@thing.value) == "map" and thing.value.len > 0 then parsed_value = "{...}"
-			inspect_buf.push(@thing.key + " "+colorWhite+":"+CT+" [" + colorGold+"</b>"+ typeof(@thing.value) + "</color>] "+colorWhite+":"+CT+" ")// + parsed_value)
-			value_buf.push(@parsed_value)
+	// check for cli launch args
+	apting = false 
+	if not arg2 then arg2 = ""
+	if not arg3 then arg3 = ""
+	paf = function()
+		outer.apting = true 
+		outer.arg2 = 0
+	end function
+	// switch(variable)
+		// 	case( condition, @action )
+		//  case( condition, @action )
+		//  case(...)
+	// default( @action )
+	switch(arg1)
+		case("-u", @apt.check_upgrade)
+		case("-i", @apt.install)
+		case("-a", @apt.add_repo)
+		case("-d", @apt.del_repo)
+		case("-s", @apt.search)
+		case("--hotswap", @apt.hot_swap)
+	default( @paf )
+	
+	//apting = true
+	while apting
+		apt.update
+		i = 0
+		for c in apt.indexes
+			print("["+colorWhite+i+CT+"] - apt-get."+"<b>"+c+"</b>")
+			i = i + 1
 		end for
-		inspect_buf.push("[end of ")
-		value_buf.push(" custom object]")
-		format_buf = format_columns(inspect_buf.join(char(10)).trim)
-		format_buf = format_buf.split(char(10))
-		fi = 0
-		if DEBUG then 
-			print "debug: f_buf: "+format_buf
-			print "debug: v_buf: "+value_buf
-		end if 
-		for line in format_buf
-			format_buf[fi] = @line + @value_buf[fi]
-			fi = fi + 1
-		end for
-		return format_buf.join(char(10))
-	end function
-
-	cob.validate = function()
-		if DEBUG then print "debug: cob: validating custom object"
-		o=[]
-		o.push(colorCyan+"</b>cob: validating custom object...")
-		if not cobble.hasIndex("macros") then; cobble.macros = {};o.push(colorOrange+"<size=75%>--: restoring index: macros");end if
-		if not cobble.hasIndex("stack_pool") then; cobble.stack_pool = 0;o.push(colorOrange+"<size=75%>--: restoring index: stack_pool");end if
-		return o.join(char(10))
-	end function
-
-	cob.del = function( key=0, val=0, nil=0, nul=0 )
-		if typeof(@key) == "function" then
-		if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>" //else return "cob: key not found."
-		else
-		if cobble.remove( key ) then return "cob: removed key: <b>"+key+"</b>" else return "cob: key not found"
-		end if
-	end function
-
-	cob.sign = function( key=0, val=0, nil=0, nul=0 )
-		return cob.set( "signature" , command.code("-a", key))
-	end function
-
-	cob.install = function(key=0, val=0, nil=0, nul=0)
-		g = @cob.get
-		new_command = g(key)
-		if typeof(@new_command) == "string" then return new_command + ": Install failed"
-		if typeof(@new_command) == "function" then 
-			command[key] = @new_command 
-			return "Set command."+key+" to "+@new_command
-		else 
-			return "cob: install expects a function"
-		end if
-	end function
-
-	if arg1 == "return" then return cobble
-	if arg1 == "validate" then return cob.validate
-	if arg1 == "install" then 
-		if typeof(@arg2) == "string" then return cob.install(arg2) else return "cob: install expects a (string: key) from the custom object"
-	end if
-
-	if arg1 == "set" then
-		if not @arg2 then return "cob: index cannot be zero or null"
-		//if @arg3 then
-			if @arg2 == "@clipa" then arg2 = @globals.CLIP["a"]
-			if @arg2 == "@clipb" then arg2 = @globals.CLIP["b"]
-			if @arg2 == "@clipc" then arg2 = @globals.CLIP["c"]
-			if @arg3 == "@clipa" then arg3 = @globals.CLIP["a"]
-			if @arg3 == "@clipb" then arg3 = @globals.CLIP["b"]
-			if @arg3 == "@clipc" then arg3 = @globals.CLIP["c"]
-			kl = null
-			idx = @arg2
-			if typeof(@arg2) == "string" then
-				kl = arg2.split("\.")
-				if kl.len > 1 then 
-					if DEBUG then print "debug: cob is setting a nested index: "+kl
-					idx = kl.pop
-					kl = kl.join(".")
-					tmp_c = command.cob("get",kl)
-					if typeof(tmp_c) == "list" or typeof(tmp_c) == "map" then cobble = tmp_c else return "cob: target index is not a list or map"
-				end if
-			end if
-			if typeof(cobble) == "list" and typeof(@idx) == "string" then idx = idx.to_int
-			return cob.set( @idx, @arg3, kl )
-		//else
-		//	return "cob: invalid input: see <b>cob -h</b>"
-		//end if
-	end if
-	if arg1 == "get" then
-		if not @arg2 then return cob.err
-		kl = []
-		rl = []
-		if typeof(@arg2) == "string" then kl = arg2.split("\.") else kl = [@arg2]
-		if DEBUG then print "key list: "+kl
-		for k in kl 
-			g = @cob.get
-			if typeof(cobble) == "list" and typeof(@k) == "string" and typeof(k.to_int) == "number" then k = k.to_int
-			rl.push(g(@k))
-			if typeof(@rl[-1]) == "map" or typeof(@rl[-1]) == "list" then cobble = rl[-1] else break 
-		end for
-		return rl[-1]
-	end if
-
-	if arg1 == "indexes" then 
-		return cob.return_indexes
-	end if
-	if arg1 == "inspect" then
-		return cob.inspect
-	end if
-	if arg1 == "sign" then return cob.sign(signature)
-	if arg1 == "search" then
-		if @arg2 then return cob.search( @arg2 ) else return cob.err
-	end if
-	if arg1 == "del" then
-		if @arg2 then return cob.del( @arg2 ) else return cob.err
-	end if
-	if arg1 == "purge" then return command.purge("-o","y")
-	return cob.err
+		//print("["+colorWhite+i+CT+"] - Exit")
+		a_choice = user_input("(q=quit)||: ",0,1).to_int
+		if a_choice == 0 or a_choice == "q" then return 0
+		if typeof(a_choice) != "number" or a_choice >= i or a_choice < 0 then continue
+		print(apt.indexes[a_choice])
+		ap = apt[apt.indexes[a_choice]]
+		ap
+		print("_____________________________________________")
+		print
+	end while
+	return 0
 end function
 command.smtp = function(arg1,arg2=0,arg3=0,arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "SMTP || MAIL USER LIST"+char(10)+"Usage: smtp [ip] [port] -- return mail user list if ip/port is running smtp mail server"+char(10)+"-- user target ip and target port if not supplied"
@@ -3024,11 +2947,13 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
 end function
 command.fetch = function(arg1,arg2,arg3,arg4)
 	if arg1 == "help" or arg1 == "-h" then return "SPOT || FETCH || MetaxploitLib || kérberos"+char(10)+char(10)+
-	colorGold+"</b>Usage: fetch -b [shell_object|path] [path|shell_object] "+char(10)+
-	"--download the system.log and all binaries in /home from target shell"+char(10)+
+	colorGold+"</b>Usage: fetch [-b] [shell_object|path] [path|shell_object] "+char(10)+
+	"-- download the system.log and all binaries in /home from target shell"+char(10)+
 	"--eg:"+colorGold+"</b> fetch -b @B 1 /root"+char(10)+
 	"--eg:"+colorGold+"</b> zap | fetch -b /root"+char(10)+
-	"--eg:"+colorGold+"</b> rsi -r 1 | fetch -b"+char(10)+char(10)+
+	"--eg:"+colorGold+"</b> rsi -r 1 | fetch -b"+char(10)+
+	colorGold+"Usage: fetch [-l] [shell_object|path] [path|shell_object]"+char(10)+
+	"-- as above but only files ending in <b>.log</b>"+char(10)+
 	colorGold+"</b>Usage: fetch [shell_object] -- obtain a MetaxploitLib object from a supplied shell"+char(10)+
 	"-- uploads metaxploit.so to /home/guest"+char(10)+
 	"-- creates a source file in /home/guest"+char(10)+
@@ -3040,7 +2965,7 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	"NOTE: does <b>not</b> scrub the log; does not use rm to remove files"+char(10)+
 	"-- don't forget to scrub the log, if necessary"+char(10)+
 	"NOTE: This is not a jump file. It is a spot file. That is all."
-	if arg1 == "-b" then 
+	if arg1 == "-b" or arg1 == "-l" then 
 		shl = null 
 		pth = globals.currentPath
 		if typeof(arg2) == "shell" then shl = arg2 else shl = arg3
@@ -3049,7 +2974,7 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 		if typeof(shl) != "shell" then return "fetch: -b expects shell, got: "+typeof(arg2) 
 		if typeof(pth) != "string" then print "fetch: invalid destination path;"+char(10)+"-- defaulting to: "+pth
 		if DEBUG then print "debug: in fetching from "+shl+" to "+pth
-		return globals.get_binaries(shl,pth)
+		if arg1 == "-b" then return globals.get_binaries(shl,pth) else return globals.get_binaries(shl,pth,1)
 	end if
 	//
 	if typeof(arg1) != "shell" then return 0
