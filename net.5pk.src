@@ -1676,7 +1676,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 			if DEBUG then print "debug: db -m: arg2: "+arg2+" arg3: "+arg3+" arg4: "+arg4
 			if arg1 == "-M" then 
 				mob = command.cob("get","myx0")
-				if typeof(mob) == "metaxploitLib" then print command.meta("-i",mob) else print mob
+				if typeof(mob) == "MetaxploitLib" then print command.meta("-i",mob) else print mob
 			end if
 			if typeof(arg2) == "MetaxploitLib" then print command.meta("-i",arg2) 
 			if typeof(arg3) == "MetaxploitLib" then print command.meta("-i",arg3) 
