@@ -5,16 +5,35 @@ https://discord.gg/AFqsGaCDfS
 
 **Shell emulator and multitool for the video game Grey Hack.**
 
-Now open source.
-Very, very, very limited support available.
-MIT license superscedes old 5hell license.
+Now open source.<br>
+Support available on discord.<br>
+MIT license superscedes old 5hell license.<br>
 
-### To build in Grey Hack:
+All of 5hell's documentation is built into 5hell's source code!<br>
+A contributor named Arcane has made this tool to extract help info from the source!<br>
+https://github.com/Arc8ne/5hell-Documentation-Extractor<br>
+This is most useful because the built in documentation is always up to date,<br>
+where the usage info below the install instructions, here, is not always.<br>
+
+Normal build:<br>
+The 5hell source code is designed to be built in Grey Hack by copy-pasting<br>
+and building files in the correct order. It's as easy as copy, paste, build!<br>
+(but like, several times because it's several files...)<br>
+
+Alternative build:<br>
+You may use Ayecue's Greybel to build 5hell into Grey Hack with just a click.<br>
+Greybel is available on the VSCode marketplace for free!<br>
+Here's the github link for it: https://github.com/ayecue/greybel-js<br>
 
 
-First make the directory /root/src as root (its important otherwise that action will get denied) inside your Game
+######### Standard installation instructions ###########################<br>
+#######################################<br>
+### How To build 5hell in Grey Hack:<br>
 
-**Tip: to escalate to root use this command:**
+First make the directory /root/src as root  inside your Game<br>
+(its important you are root otherwise that action will get denied)<br>
+
+**Tip: to escalate to root use this command:**<br>
 
 <pre>
 sudo -s
