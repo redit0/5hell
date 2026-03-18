@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading help.5pk v 4.3.2...(133.208)")
+if DEBUG then print("<size=75%>loading help.5pk v 4.3.4...(132.266)")
 
 command.help = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "helping..."
@@ -391,6 +391,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorCyan+"bat [path]      |</b> do 1 -f [path]"+char(10)+
 	colorCyan+"set [key] [val] |</b> cob set [key] [val]"+char(10)+
 	colorCyan+"get [key]       |</b> cob get [key]"+char(10)+
+    colorCyan+"inspect [key]   |</b> cob inspect [key]"+char(10)+
 	colorCyan+"lock            |</b> perms lock all"+char(10)+
 	colorCyan+"exit            |</b> quit"+char(10)+
 	colorCyan+"sc [opt]        |</b> silentclean [opt]"+char(10)+
@@ -515,48 +516,6 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		for cmd in command.indexes.sort
 			if cmd == "shell" or cmd == "help" or cmd == "__isa" or cmd == "classID" then continue
 			h = @command[cmd]
-			// Support for Glosure's lambdas
-			if typeof(@h) == "lambda" then
-				readString = function(s)
-					return "'" + s + "'"
-				end function
-				readArray = function(array)
-					i = 0
-					while i < len(array)
-						elem = @array[i]
-						if @elem isa string then array[i] = readString(elem)
-						if @elem isa list then array[i] = readArray(elem)
-						i = i + 1
-					end while
-					return [ "array" ] + array
-				end function
-				readArgs = function(args)
-					i = 0
-					while i < len(@args)
-						arg = @args[i]
-						if @arg isa string then args[i] = readString(arg)
-						if @arg isa list then args[i] = readArray(arg)
-						i = i + 1
-					end while
-				end function
-				lambda = h
-				h = function(arg1, arg2, arg3, arg4)
-					args = [
-						@arg1,
-						@arg2,
-						@arg3,
-						@arg4,
-					]
-					readArgs args
-					return command.glosure("eval", [
-						lambda,
-						@args[0],
-						@args[1],
-						@args[2],
-						@args[3],
-					])
-				end function
-			end if
 			c_buf.push(colorWhite+cmd+CT)
 			c_buf.push(h("help"))
 		end for

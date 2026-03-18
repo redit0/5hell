@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.3.4"
-malp_version = "1.6.5"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.2...(158.480)")
+sphinx_version = "3.3.77"
+malp_version = "1.6.6"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.4...(158.070)")
 
 NUM_SPLOITS = function()
   num = globals.XPLOITS.len
@@ -11,10 +11,11 @@ NUM_SPLOITS = function()
   return num
 end function
 
-update_path = function()
-  globals.currentPath = current_path
+update_path = function(p=null)
+  if not p then p = current_path
+  globals.currentPath = p
   print "<size=75%>Updating current path to: "+globals.currentPath
-  return 0
+  return cd(globals.currentPath)
 end function
 //
 // overrides
@@ -290,9 +291,11 @@ globals._startup_resource_configuration  = function()
   c = p.get_content.split(char(10))
   if reenc then print command.file("-e",p.path,reenc)
   print "<size=75%>-- beginning resource configuration..."
-  for line in c
-    if line.len > 0 and line[0] != "#" then command.shell(line+" | return")
-  end for
+  //if DEBUG then print "rc: passing to do: "+char(10)+colorCyan+c
+  command.do("1",c)
+  // for line in c
+  //   if line.len > 0 and line[0] != "#" then command.shell(line+" | return")
+  // end for
   return 0
 end function
 
@@ -368,7 +371,7 @@ globals._ez_clip = function( in_prompt )
     // connecting dots
     if DEBUG then print("p: "+@e)
     e_indx = in_prompt.indexOf(@e) 
-    if @e == "@STOP" then in_prompt[e_indx] = @globals.SAFEWORD
+    //if @e == "@STOP" then in_prompt[e_indx] = @globals.SAFEWORD
     if @e == "@a" then in_prompt[e_indx] = @globals.CLIP["a"]
     if @e == "@b" then in_prompt[e_indx] = @globals.CLIP["b"]
     if @e == "@c" then in_prompt[e_indx] = @globals.CLIP["c"]
@@ -1756,21 +1759,9 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=null)
             print colorCyan+"</b>Create numbered copies of a file in a given directory"+char(10)+
             "-- usefule for annoying someone or degrading hardware"
             copies = user_input("Enter a number of copies to spam: "+char(10)+":> "+colorRed).to_int
-            if typeof(copies) != "number" or copies < 1 then 
-              print "aborting..."
-            else 
-              dest = user_input("Enter a <b>folder</b> to spam (<b>enter</b>=abort):"+char(10)+":> "+colorRed)
-              if dest.trim == "" then continue
-              for i in range(1,copies) 
-                print colorRed+"Spamming: "+colorWhite+dest+"/"+buffer_selection.name+i
-                c = buffer_selection.copy(dest,buffer_selection.name+i)
-                if c != 1 then 
-                  print c
-                  print colorRed+"Error: write failed; aborting..."
-                  break 
-                end if
-              end for 
-            end if
+
+            print command.spam(copies,0,buffer_selection)
+
             print 
             continue 
           end if
@@ -2101,19 +2092,20 @@ globals.newtree = function(a_file,quiet=0)
   listFiles(a_file)
   output = []
   outprint = []
+  nb = "</b>"
   for i in system_map.indexes
       for f in system_map[i].values
           s = ""
-          if f.is_symlink then s="<color=yellow>"
+          if f.is_symlink then s=colorGold+nb
           depth = f.path.split("/").len-2
           if f.path == "/" then 
-            outprint.push( "<size=80%><color=#2382FFFF>"+f.path+" "+s+f.permissions )
+            outprint.push( "<size=80%>"+colorDarkBlue+f.path+" "+s+f.permissions )
             continue
           end if
           if f.is_folder then 
-              outprint.push( "<size=80%><color=blue>"+"   "*depth+"<u>|  </u><b><color=#2382FFFF>"+s+f.path+" "+f.permissions )
+              outprint.push( "<size=80%>"+colorLightBlue+nb+"   "*depth+"<u>|  </u>"+colorLightBlue+s+f.path+" "+f.permissions )
           else 
-            if f.is_binary then outprint.push( "<size=80%><color=blue>"+"   "*depth+"<color=#00FFFF><u>|    </u>"+s+f.path+" "+f.permissions) else outprint.push( "<size=80%><color=blue>"+"   "*depth+"<color=white><u>|    </u>"+s+f.path+" "+f.permissions )
+            if f.is_binary then outprint.push( "<size=80%>"+("   "*depth)+colorCyan+nb+"<u>|    </u>"+s+f.path+" "+f.permissions) else outprint.push( "<size=80%>"+"   "*depth+colorWhite+nb+"<u>|    </u>"+s+f.path+" "+f.permissions )
           end if
           output.push(f)
       end for
@@ -2140,21 +2132,22 @@ end function
 globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
   //grepped_file = "File: " + grep + " not found."
   //if not quiet then print("Expanding: " + colorLightBlue+result.path)
+  nb = "</b>"
   if not quiet then 
     s = ""
-    if result.is_symlink then s="<color=yellow>"
+    if result.is_symlink then s=colorGold+nb
     encis = ""
     //if globals.crypto and crypto.is_encrypted(result.path) and depth == true then encis = colorOrange+"</b>encrypted" // stub
     if result.is_binary then 
       if not result.is_folder then 
-        s = ""
-        if result.is_symlink then s="<color=yellow>"
+        //s = ""
+        //if result.is_symlink then s="<color=yellow>"
         //print "<size=80%><color=blue><u>|  </u><color=#00FFFF>"+s+result.permissions+" "+result.path+" "+encis
-        print "<size=80%>"+"   "*(depth-1)+"<color=#00FFFF><u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
+        print "<size=80%>"+"   "*(depth-1)+colorCyan+nb+"<u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
       end if 
     else 
       //print   "<size=80%><color=blue><u>|  </u><color=white>"+  s+result.permissions+" "+result.path+" "+encis
-      print  "<size=80%>"+"   "*(depth-1)+"<color=white><u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
+      print  "<size=80%>"+"   "*(depth-1)+colorWhite+nb+"<u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
     end if
   end if
   if not result.is_binary then
@@ -2198,7 +2191,7 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
       for folder in folders
         //if not quiet then print("Dir: " + folder.name + " " + folder.permissions)
         //if not quiet then print "<size=85%><b><color=#2382FFFF>"+folder.permissions+" "+folder.path
-        if not quiet then print "<size=80%><color=blue>"+"   "*depth+"<u>|  </u><b><color=#2382FFFF>"+s+folder.permissions+" "+folder.path
+        if not quiet then print "<size=80%>"+colorLightBlue+nb+"   "*depth+"<u>|  </u>"+colorLightBlue+s+folder.permissions+" "+folder.path
         list_files(folder, grep, quiet, waitFor,depth+1)
       end for
       for file in files

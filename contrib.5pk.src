@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.3.2...(74.115)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.3.4...(77.229)")
   
  //////////////////////contrubutions start here///////////
   /// this is stuff that was not made entirely by Plu70
@@ -418,27 +418,60 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
             }
             __eval = @eval
             __env = @env
+            readString = function(s)
+                return "'" + s + "'"
+            end function
+            readArray = function(array)
+                i = 0
+                while i < len(array)
+                    elem = @array[i]
+                    if @elem isa string then array[i] = outer.readString(elem)
+                    if @elem isa list then array[i] = outer.readArray(elem)
+                    i = i + 1
+                end while
+                return [ "array" ] + array
+            end function
+            readArgs = function(args)
+                    i = 0
+                    while i < len(@args)
+                    arg = @args[i]
+                    if @arg isa string then args[i] = outer.readString(arg)
+                    if @arg isa list then args[i] = outer.readArray(arg)
+                    i = i + 1
+                end while
+            end function
             buildGlosure = function
                 __eval = @outer.__eval
                 __env = @outer.__env
                 lambda = @outer.lambda
+                readArgs = @outer.readArgs
                 glosure0 = function()
                     return __eval([lambda], __env)
                 end function
                 glosure1 = function(arg0)
-                    return __eval([lambda, @arg0], __env)
+                    args = [@arg0]
+                    outer.readArgs(args)
+                    return __eval([lambda, @args[0]], __env)
                 end function
                 glosure2 = function(arg0, arg1)
-                    return __eval([lambda, @arg0, @arg1], __env)
+                    args = [@arg0, @arg1]
+                    outer.readArgs(args)
+                    return __eval([lambda, @args[0], @args[1]], __env)
                 end function
                 glosure3 = function(arg0, arg1, arg2)
-                    return __eval([lambda, @arg0, @arg1, @arg2], __env)
+                    args = [@arg0, @arg1, @arg2]
+                    outer.readArgs(args)
+                    return __eval([lambda, @args[0], @args[1], @args[2]], __env)
                 end function
                 glosure4 = function(arg0, arg1, arg2, arg3)
-                    return __eval([lambda, @arg0, @arg1, @arg2, @arg3], __env)
+                    args = [@arg0, @arg1, @arg2, @arg3]
+                    outer.readArgs(args)
+                    return __eval([lambda, @args[0], @args[1], @args[2], @args[3]], __env)
                 end function
                 glosure5 = function(arg0, arg1, arg2, arg3, arg4)
-                    return __eval([lambda, @arg0, @arg1, @arg2, @arg3, @arg4], __env)
+                    args = [@arg0, @arg1, @arg2, @arg3, @arg4]
+                    outer.readArgs(args)
+                    return __eval([lambda, @args[0], @args[1], @args[2], @args[3], @args[4]], __env)
                 end function
                 if len(lambda.params) == 0 then return @glosure0
                 if len(lambda.params) == 1 then return @glosure1
@@ -757,7 +790,8 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
 
     repl = function(env)
       while true
-        codeStr = user_input("</> ")
+        //codeStr = user_input("</> ")
+        codeStr = user_input("</> ",0,0,1)
         if codeStr == ";quit" then break
         result = execute(codeStr, env)
         if @result isa string then print(result) else print(tree(@result))
@@ -765,14 +799,71 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
     end function
   
     if not hasIndex(globals, "glosureEnv") then
-      prepareCode = "" //This one is hardcoded code you can run at start up.
+      prepareCode = "
+;; Standard Glosure Library
+(defmacro defun (name arguments body) () (def name (lambda arguments body)))
+
+(defmacro defunction (name arguments body) () (def name (glosure arguments body)))
+
+(defmacro while (condition body) (!result)
+    (if condition (begin
+        (loop (def !result body) condition)
+        !result)))
+
+(defmacro do-while (condition body) (!result) (begin
+    (loop (def !result body) condition)
+    !result))
+
+(defmacro for (initializer condition iterator body) (!result) ((lambda ()
+    initializer
+    (if condition (begin
+        (loop (def !result body) iterator condition)
+        !result)))))
+
+(defmacro foreach (key value collection body) (!keys) ((lambda () 
+    (def !keys (indexes collection))
+    (if !keys (begin
+        (loop 
+            (def key (pull !keys))
+            (def value (at collection key))
+            body
+            !keys)
+        value)))))
+
+(defmacro defalias (name keyword) () (defmacro name () () keyword))
+
+(defmacro swap (a b) (!temp) (begin
+    (def !temp a)
+    (def a b)
+    (def b !temp)))
+
+(defmacro ++ (var) () (def var (+ var 1)))
+
+(defmacro var++ (var) (!temp) (begin
+    (def !temp var)
+    (def var (+ var 1))
+    !temp))
+
+(defmacro -- (var) () (def var (- var 1)))
+
+(defmacro var-- (var) (!temp) (begin
+    (def !temp var)
+    (def var (- var 1))
+    !temp))
+
+(def params (if (hasIndex globals 'params') (at globals 'params') (array)))
+
+(def script-path (program_path))
+
+;(defun gensym () (exec '(defmacro _ () (sym) (quote sym))(_)')) ;; Unquote is needed to make it any usefull
+      " //This one is hardcoded code you can run at start up.
       globals.glosureEnv = Env(GlobalEnv)
       execute(prepareCode, glosureEnv)
     end if
   
     helpMsg = "Usage: glosure -- invoke Glosure REPL, type ;quit to quit.
   Usage: glosure [-e|exec] ""code""  -- execute Glosure code.
-  Glosure interpreter version: 6ec50db. For a more detailed guide read https://github.com/rocketorbit/Glosure/blob/main/Tutorial.md
+  Glosure interpreter version: 237f129. For a more detailed guide read https://github.com/rocketorbit/Glosure/blob/main/Tutorial.md
   <b>Warning: This command is a programming language! Your error may result in crash!</b>
   
   Short reference:

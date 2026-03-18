@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.3.2...(66.691)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.3.4...(67.763)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -50,7 +50,8 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 	"-- allows controlling one or more 5hell sessions through a single shared file"+char(10)+
 	"-- write to socket_in like any other do script"+char(10)+
 	"-- write HALT (with no other text) to socket_in to terminate kore control"+char(10)+
-	"-- daemon manager integration soon(tm) "+char(10)+char(10)+
+	//"-- daemon manager integration soon(tm) "+char(10)+
+	char(10)+
 	"--n.b: cannot spool non-returned text; aka metaxploit.overflow text"+char(10)+
 	"---- that text goes straight to the terminal and bypasses function returns"+char(10)+
 	"NOTE: writing to socket_in too quickly can cause commands to be missed!"+char(10)+
@@ -241,8 +242,11 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 														"# THEME section"+char(10)+
 														"# below are examples of a colorDefinition override used to adjust colors to fit your theme"+char(10)+
 														"# kore --override colorDefault <noparse><#FFFFFFFF></noparse>"+char(10)+
-														"# kore --override color5phinxText <noparse><#00FFFFFF></noparse>"+char(10)+ 
-														"# END THEME"+char(10)+
+														"# kore --override color5phinxText <noparse><#00FFFFFF></noparse>"+char(10)+
+														"# New: Marinette, by Hecate, has a bunch of theme presets that you can activate!"+char(10)+
+														"# --you can get it at: https://github.com/shippingfandom/Marinette"+char(10)+
+														"# --below is a handy macro to use to switch Marinette themes at runtime:"+char(10)+
+														"# macro set theme "" glosure -e \"" ((set globals 'SILENT' 2)) \"" || clipa \"" (mari-load-theme ' \"" || append @clipa @pipe || append @clipa ') || glosure -e \"" ((set globals 'SILENT' 0)) \"" || glosure -e \@a "" "+char(10)+														"# END THEME"+char(10)+
 														"# remove the '#'s below and add your commands"+char(10)+
 														"# "+char(10)+
 														"# "+char(10)+
@@ -364,65 +368,6 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     print default(@error)
     time_f = time - time_s
     return "<size=75%>kore: task complete in "+time_f+" seconds."
-end function
-
-command.outmon = function(arg1,interval=2, act=0, react=0)
-	if arg1 == "help" or arg1 == "-h" then return "monitor || file monitor || output monitor"+char(10)+
-	"Outmon is a not very useful daemon that will monitor a given file for a change."+char(10)+
-	"When a change is detected, it will print the file contents, then resume monitoring."+char(10)+char(10)+
-	colorLightBlue+"Usage: outmon [path] [opt:interval] [opt:bool:act] [opt:reaction]"+char(10)+
-	colorCyan+"-- [path] -- is the path to the file you wish to monitor"+char(10)+
-	"---- it may be of type ascii or binary"+char(10)+
-	"---- monitoring folders is not yet supported (soontm)"+char(10)+
-	"-- [interval] -- is the refresh rate; default 01 seconds, range(.01, 300)"+char(10)+
-	"--- prints changes to a text file every [interval] seconds"+char(10)+
-	"-- [act] -- is 0, 1, 2, or 3"+char(10)+
-	"---- 0: do nothing; continue to loop (anything other than 1 or 2 is treated as 0)"+char(10)+
-	"---- 1: stop outmon on the first change detected"+char(10)+
-	"---- 2: invoke <b>do</b> on the file contents, then continue the loop"+char(10)+
-	"---- 3: perform the indicated reaction; prompts if not supplied"+char(10)+
-	"-- [reaction] -- should be a command or string of commands"+char(10)+
-	"-----eg: "+colorCyan+"outmon /var/system.log .01 3 \"" mv /var/system.log /var/system.back || sc || lock \"" "+char(10)+
-	"-- to end the running process, use the command:<b> purge -d [opt:name]"+char(10)+
-   	"---- or note the daemon name printed on the screen and "+char(10)+
-    "---- remove the corresponding line from <b>/root/5hell.d</b>"+char(10)+
-    "---- or delete the file entirely"+char(10)+
-    "-- if the file cannot be created, then the process must be exited by with <b>ctrl+c"+char(10)+char(10)+
-	"<b>MNEMONIC: 1 and done, 2 is do, 3 by me, otherwise loop to infinity"
-	out_space = 0
-	if arg1 then out_space = globals.get_file(arg1)
-	if not out_space then return "outmon: "+ arg1 + ": file not found."
-	last_read = "-EMPTY-" // out_space.get_content
-	//interval = arg2 // refresh interval, may be float in range .1, 300
-	if interval and typeof(interval) == "string" then interval = interval.val
-	if typeof(interval) != "number" or interval < .01 or interval > 300 then interval = .1
-	act = act.to_int 
-	if act == 3 then 
-		if not react then react = user_input("outmon: supply command(s) to use as reaction to changes: "+char(10)+colorCyan+"macro set reaction "+CT+":> ")
-		
-
-
-
-	end if 
-	manager = new DaemonManager
-	daemon = manager.Start("outmon", out_space.path)
-	while (daemon and manager.Check(daemon)) or not manager.__initialized
-	  if last_read == out_space.get_content then
-	    //skip
-	  else
-	    last_read = out_space.get_content
-		print(colorWhite+"daemon: "+daemon+CT)
-	    print(colorGreen+"///////////////////////////////////////"+CT)
-	    print(last_read)
-	    print(colorGreen+"///////////////////////////////////////"+CT)
-		if act == 1 then manager.Stop(daemon)
-		if act == 2 then print command.do(last_read)
-		if act == 3 then react
-		print(colorWhite+"Listening on :"+out_space.path+" for connections..."+CT)
-	  end if
-	  wait(interval)
-	end while
-	return 0
 end function
 command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then 
@@ -624,9 +569,9 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 	if not swap_file then return("hashim: "+swap_path+" not found.") else print "hashim: found swap file: "+swap_path
 	cache = []
 	found = false
-	daemon = true
-	if arg1 == "false" or arg1 == "-f" then daemon = false
-	hashim = function(daemon,swap_file)
+	run_once = false
+	if arg1 == "false" or arg1 == "-f" then run_once = true
+	hashim = function(swap_file,run_once)
 		wait(.05)
 		//if not daemon then swap_path = "/root/pass"
 		//swap_file = globals.get_file(swap_path)
@@ -645,16 +590,16 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 						have_tables = true 
 					end if
 				end for
-			else 
-				print "hashim: tables not found; defaulting to cryptolib"
-			end if
+			end if 
+			if not have_tables then print "hashim: tables not found; defaulting to cryptolib"
 		else 
-			print "hashim: using: "+t_path
+			print "hashim: using tables: "+t_path
 			have_tables = true
 		end if
 		if not swap_file then return "hashim: error: "+swap_path+" not found."
 		last_read = "" //swap_file.get_content
-		running = true
+		write_this = ""
+		//running = true
 		manager = new DaemonManager
 		daemon = manager.Start("hashim")
 		// move the tables stuff up here, not good to keep redoing it in a loop
@@ -662,14 +607,19 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 		print(colorWhite+"Daemon: "+daemon+CT)
 		while (daemon and manager.Check(daemon)) or not manager.__initialized
 			found = false
-			hash = ""
+			//hash = ""
 			user = ""
-			if last_read == swap_file.get_content or swap_file.get_content == "" then
-				// skip
+			current_read = swap_file.get_content
+			if DEBUG then print "hashim: debug: "+char(10)+"---last_read: "+last_read+char(10)+"---current_read: "+swap_file.get_content
+			if last_read == current_read or current_read == "" or current_read == write_this then
+				if current_read == "" then last_read = current_read
+				wait .1
+				continue
 			else
 				time_s = time
-				last_read = swap_file.get_content.split(char(10))
-				for hash in last_read
+				last_read = current_read
+				current_read = current_read.split(char(10))
+				for hash in current_read
 					found = false
 					if DEBUG then print "hash is: "+hash
 					if hash.indexOf(":") >= 0 then
@@ -686,27 +636,6 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 					if DEBUG then print "hash is:"+hash+" and len is: "+hash.len
 					if hash.len != 32 then continue
 					print("["+hash+"]")
-					// t_path = get_custom_object.HOME.t5
-					// t_folder = globals.get_file(t_path)
-					// have_tables = false
-					// if not t_folder then 
-					// 	print "hashim: "+t_path+" not found; searching for tables..."
-					// 	t_folder = command.tree("/","tables",1,"N")
-					// 	if typeof(t_folder) == "file" and t_folder.is_folder then 
-					// 		folds = t_folder.get_folders
-					// 		for f in folds
-					// 			if f.name == "t5" and f.is_folder then 
-					// 				t_folder = f 
-					// 				have_tables = true 
-					// 			end if
-					// 		end for
-					// 	else 
-					// 		print "hashim: tables not found; defaulting to cryptolib"
-					// 	end if
-					// else 
-					// 	print "hashim: using: "+t_path
-					// 	have_tables = true
-					// end if
 					if have_tables == true then
 						files = t_folder.get_files
 						for f in files
@@ -720,7 +649,7 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 								p = spl[1]
 								if h == hash then
 									print("Hashim: " + user + ":" + colorWhite + p + CT + " found in " + (time-time_s) + " seconds.")
-									cache.push(user + ":" + p)
+									cache.push(user+ ":"+p+":"+hash)
 									found = true
 									continue
 									if h.len != 32 then print(colorRed+"hashim: t5 table error: entry is not 32 characters"+char(10)+line+char(10)+"Line: "+lines.indexOf(line))
@@ -728,13 +657,13 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 							end for
 						end for
 					end if
-					if found == true then continue
+					if found == true then continue else print ("hashim: invoking cryptoLib...")
 					if crypto then
-						password = null
-						password = crypto.decipher(hash)
-						if password then
-							print("Hashim: " + user + ":" + colorWhite + password + CT + " found in " + (time-time_s) + " seconds.")
-							cache.push(user + ":" + password)
+						p = null
+						p = crypto.decipher(hash)
+						if p then
+							print("Hashim: " + user + ":" + colorWhite + p + CT + " found in " + (time-time_s) + " seconds.")
+							cache.push(user+":"+p+":"+hash)
 							found = true
 							continue
 						end if
@@ -742,28 +671,39 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 						print "hashim: error; no cryptolib found"
 					end if
 					print(colorRed+"Hash not found: unknown: "+hash+CT)
-					cache.push(user+":unknown")
+					//cache.push(user+":unknown"+":"+hash)
 				end for
-				last_read = cache.join(char(10))
-				if daemon then print("Sending: "+char(10)+last_read)
-				if daemon then swap_file.set_content(last_read)
-				print("Saving to dump.txt...")
-				dump.set_content(dump.get_content+char(10)+last_read)
+				write_this = cache.join(char(10))
+				if DEBUG then print "hashim: debug: "+char(10)+"---daeamon: "+daemon+char(10)+"---run_once: "+run_once+char(10)+"---saving: "+write_this+"---last_read: "+last_read
+				if daemon and write_this and not run_once then
+					print("Sending to swap file: "+char(10)+write_this)
+					swap_file.set_content(write_this)
+				end if
+				if write_this then 
+					print("Saving to "+dump.path+"...")
+					dump.set_content(dump.get_content+char(10)+write_this) 
+				else 
+					print "hashim: no data to write"
+				end if
 				cache = []
 				print(colorLightBlue+"Hashim: completed task in "+(time-time_s)+" seconds."+CT)
 				wait(1)
+				if run_once then 
+					manager.Stop(daemon)
+					daemon = false
+				end if
 				if daemon then
 					print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
 					print(colorWhite+"Daemon: " + daemon + CT)
 				else
-					return 0
+					return "hashim: exiting..."
 				end if
 			end if
 			wait(.05)
 		end while
-		return 0
+		return "hashim: exiting..."
 	end function
-	return hashim(daemon,swap_file)
+	return hashim(swap_file,run_once)
 end function
 command.nt = function(arg1, arg2, arg3, arg4)
 	if EXPERIMENTAL != true then return "nt: diabled outside of nightly"
@@ -817,7 +757,8 @@ command.nt = function(arg1, arg2, arg3, arg4)
 			if np then newprompt=newprompt+@np+" "
 		end for
 		if DEBUG then print "debug: nt_prompt: "+newprompt
-        return command.run(terminal.path, newprompt.remove("--nt"),use_shell) // let's be real, --5pork is hilarious but too much to type
+        //return command.run(terminal.path, newprompt.remove("--nt"), use_shell) // let's be real, --5pork is hilarious but too much to type
+		return use_shell.launch(terminal.path,newprompt.remove("--nt"))
     end if
 	return "shell: error; Terminal.exe not found"
 end function
@@ -1111,6 +1052,7 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 	if not arg1 then return "glasspool: invalid input; <b>gp -h</b> for help"
 	gp_do = false // do we need to initiate a do script when we start galsspool?
 	obj = arg1 
+	temp_p = globals.currentPath
 	if arg1 == "-d" then
 		if arg2 then gp_do = arg2 else return "glasspool: -d expects string"
 		obj = arg3
@@ -1173,7 +1115,7 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 		end if
 	end if
 	// check result. file objects are not supported at this time
-	if typeof(obj) != "shell" and typeof(obj) != "computer" then return "glassp: expects shell or computer"
+	if typeof(obj) != "shell" and typeof(obj) != "computer" then return "glasspool: expects shell or computer"
 	print(colorLightBlue+"<size=75%>Initializing sshfs glasspool protocol..."+CT)
 
 	// -- handle shell
@@ -1185,12 +1127,13 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 		if globals.localmachine and globals.shell then
 			globals.GLASSPOOL = globals.GLASSPOOL + 1
 			// display info/warning
-			print colorLightBlue+"<size=75%>glasspoool:"+CT+colorWhite+" initialization successful. "+char(10)+
+			print colorLightBlue+"<size=75%>GLASSPOOL:"+CT+colorWhite+" initialization successful. "+char(10)+
 			colorOrange+"<size=75%>Type <u>return</u></b> to deactivate glasspool or exit / quit to exit 5hell completely"+char(10)+
 			colorOrange+"<size=75%>glasspool: shell mirroring:"+char(10)+
 			"<size=75%>-- <color=yellow>shell</color>, <color=yellow>computer</color>, and <color=yellow>file</color> commands"+char(10)+
 			"<size=75%>---- will execute on the machine attached to the shell object"+char(10)+
-			"<size=75%>-- <b>local/general</b> category commands will execute on the local machine"
+			"<size=75%>-- <b>local/general</b> category commands will execute on the local machine"+char(10)+
+			"<size=75%>-- <b>tab completion</b> does not translate through glasspool"
 			if typeof(globals.shell) == "ftpshell" then print colorOrange+"<size=75%>Warning: ftp shells have limited functionality"
 			// print("Type: <b><u>return</u></b> to deactivate and return. Exit to quit completely.")
 			// switch scope
@@ -1210,7 +1153,7 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			globals.localmachine = globals.shell.host_computer
 			globals.GLASSPOOL = globals.GLASSPOOL - 1
 			// update path
-			globals.update_path
+			globals.update_path(temp_p)
 			print(colorLightBlue+"<size=75%>glasspool: "+colorOrange+" deactivating..."+CT)
 		else
 			globals.shell = hold_shell
@@ -1251,7 +1194,7 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			// restore previous state
 			globals.localmachine = tem_c
 			// update path
-			globals.update_path
+			globals.update_path(temp_p)
 			globals.GLASSPOOL = globals.GLASSPOOL - 1
 			print(colorLightBlue+"GLASS_PUDDLE: "+colorOrange+" deactivating..."+CT)
 		else 
@@ -1259,5 +1202,67 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			print(colorOrange+"glasspool: error: failed to initialize."+CT)
 		end if
 	end if
+	return 0
+end function
+command.outmon = function(arg1,interval=2, act=0, react=0)
+	if arg1 == "help" or arg1 == "-h" then return "monitor || file monitor || output monitor"+char(10)+
+	"Outmon is a not very useful daemon that will monitor a given file for a change."+char(10)+
+	"When a change is detected, it will print the file contents, then resume monitoring."+char(10)+char(10)+
+	colorLightBlue+"Usage: outmon [path] [opt:interval] [opt:bool:act] [opt:reaction]"+char(10)+
+	colorCyan+"-- [path] -- is the path to the file you wish to monitor"+char(10)+
+	"---- it may be of type ascii or binary"+char(10)+
+	"---- monitoring folders is not yet supported (soontm)"+char(10)+
+	"-- [interval] -- is the refresh rate; default 01 seconds, range(.01, 300)"+char(10)+
+	"--- prints changes to a text file every [interval] seconds"+char(10)+
+	"-- [act] -- is 0, 1, 2, or 3"+char(10)+
+	"---- 0: do nothing; continue to loop (anything other than 1 or 2 is treated as 0)"+char(10)+
+	"---- 1: stop outmon on the first change detected"+char(10)+
+	"---- 2: invoke <b>do</b> on the file contents, then continue the loop"+char(10)+
+	"---- 3: perform the indicated reaction; prompts if not supplied"+char(10)+
+	"-- [reaction] -- should be a command, string of commands, or macro(s)"+char(10)+
+	"-----eg: "+colorCyan+"outmon /var/system.log .01 3 \"" mv /var/system.log /var/system.back || sc || lock \"" "+char(10)+
+	"-- to end the running process, use the command:<b> purge -d [opt:name]"+char(10)+
+   	"---- or note the daemon name printed on the screen and "+char(10)+
+    "---- remove the corresponding line from <b>/root/5hell.d</b>"+char(10)+
+    "---- or delete the file entirely"+char(10)+
+    "-- if the file cannot be created, then the process must be exited by with <b>ctrl+c"+char(10)+char(10)+
+	"<b>MNEMONIC: 1 and done, 2 is do, 3 by me, otherwise loop to infinity"
+	out_space = 0
+	if arg1 then out_space = globals.get_file(arg1)
+	if not out_space then return "outmon: "+ arg1 + ": file not found."
+	last_read = "-EMPTY-" // out_space.get_content
+	//interval = arg2 // refresh interval, may be float in range .1, 300
+	if interval and typeof(interval) == "string" then interval = interval.val
+	if typeof(interval) != "number" or interval < .01 or interval > 300 then interval = .1
+	if typeof(act) == "string" then act = act.to_int 
+	if act == 3 then 
+		if not react then react = user_input(colorCyan+"outmon: supply command(s) to use as reaction to changes: "+char(10)+colorCyan+"-- reaction (<<b>enter</b>>=abort):> "+colorWhite)
+		if react == "" then return "outmon: aborting..."
+	end if 
+	manager = new DaemonManager
+	daemon = manager.Start("outmon", out_space.path)
+	if DEBUG then
+		print colorOrange+"debug: ready to outmon with:
+		out_space: "+out_space.path+"
+		interval: "+interval+"
+		act: "+act+"
+		react: "+react+char(10)
+	end if
+	while (daemon and manager.Check(daemon)) or not manager.__initialized
+	  if last_read == out_space.get_content then
+	    //skip
+	  else
+	    last_read = out_space.get_content
+		print(colorWhite+"daemon: "+daemon+CT)
+	    print(colorGreen+"///////////////////////////////////////"+CT)
+	    print(last_read)
+	    print(colorGreen+"///////////////////////////////////////"+CT)
+		if act == 1 then manager.Stop(daemon)
+		if act == 2 then print command.do("1",last_read)
+		if act == 3 then print command.do("1",react)
+		print(colorWhite+"Listening on :"+out_space.path+" for connections..."+CT)
+	  end if
+	  wait(interval)
+	end while
 	return 0
 end function
